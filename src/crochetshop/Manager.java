@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package crochetshop;
 
 import config.config;
@@ -10,10 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-/**
- *
- * @author JeremyTheGreats
- */
+
 public class Manager {
     
     public static void Manager(){
@@ -67,41 +60,71 @@ public class Manager {
             System.out.println(" [3] Update Stock");
             System.out.println(" [4] Back");
             System.out.print(" Choose (1 - 4): ");
-            int choose = sc.nextInt();
-            sc.nextLine();
+            String choose = sc.nextLine();
+            
 
             switch (choose) {
-                case 1:
-                    System.out.print("Enter product name: ");
-                    String name = sc.nextLine();
-                    System.out.print("Enter price: ");
-                    double price = sc.nextDouble();
-                    sc.nextLine();
-                    System.out.print("Enter stock quantity: ");
-                    int stock = sc.nextInt();
-                    sc.nextLine();
+                
+                case "1":
+                    boolean addMore = true;
 
-                    String sql = "INSERT INTO Product (product_name, price, stock) VALUES (?, ?, ?)";
-                    db.addRecord(sql, name, price, stock);
-                    System.out.println("\nProduct added successfully!");
-                    break;
+                    while (addMore) {
+                        
+                        System.out.println("\n=== ADD PRODUCT ===");
 
-                case 2:
+                        System.out.print("Enter product name: ");
+                        String name = sc.nextLine();
+
+                        System.out.print("Enter price: ");
+                        double price = sc.nextDouble();
+                        sc.nextLine();
+
+                        System.out.print("Enter stock quantity: ");
+                        int stock = sc.nextInt();
+                        sc.nextLine();
+
+                        String sql = "INSERT INTO Product (product_name, price, stock) VALUES (?, ?, ?)";
+                        db.addRecord(sql, name, price, stock);
+
+                        System.out.println("\nProduct added successfully!");
+
+                        System.out.print("\nAdd another product? (Y/N): ");
+                        String again = sc.nextLine().trim().toUpperCase();
+
+                        if (!again.equals("Y")) {  
+                            addMore = false;
+                        }
+                    }
+
+                break;
+
+
+                case "2":
                     System.out.println("\n=== PRODUCT LIST ===");
                     List<Map<String, Object>> products = db.fetchRecords("SELECT * FROM Product");
                     if (products.isEmpty()) {
                         System.out.println("No products found.");
                     } else {
+                        System.out.println("---------------------------------------------------------------");
+                        System.out.println("| ID  | Product Name           | Price        | Stock        |");
+                        System.out.println("---------------------------------------------------------------");
+
                         for (Map<String, Object> p : products) {
-                            System.out.println("ID: " + p.get("product_id") +
-                                    " | Name: " + p.get("product_name") +
-                                    " | Price: ₱" + p.get("price") +
-                                    " | Stock: " + p.get("stock"));
+                            System.out.printf(
+                                "| %-3s | %-23s | ₱%-11s | %-11s |\n",
+                                p.get("product_id"),
+                                p.get("product_name"),
+                                p.get("price"),
+                                p.get("stock")
+                            );
                         }
+
+                        System.out.println("---------------------------------------------------------------");
+
                     }
                     break;
 
-                case 3:
+                case "3":
                     System.out.print("Enter Product ID to update stock: ");
                     int id = sc.nextInt();
                     sc.nextLine();
@@ -113,7 +136,7 @@ public class Manager {
                     System.out.println("\nStock updated successfully!");
                     break;
 
-                case 4:
+                case "4":
                     loop = false;
                     break;
 
@@ -125,7 +148,6 @@ public class Manager {
     
     private static void viewOrders() {
         
-        Scanner sc = new Scanner(System.in);
         config db = new config();
         
         System.out.println("\n=== ORDER LIST ===");

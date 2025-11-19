@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package crochetshop;
 
 import config.config;
@@ -10,10 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-/**
- *
- * @author JeremyTheGreats
- */
+
 public class Owner {
     
     
@@ -79,29 +72,46 @@ public class Owner {
             System.out.println(" [4] Back");
             System.out.print(" Choose (1 - 4): ");
             
-            int choose = sc.nextInt();
+            String choose = sc.nextLine();
             sc.nextLine();
 
             switch (choose) {
                 
-                case 1:
+                case "1":
                     
-                    System.out.print("Enter product name: ");
-                    String name = sc.nextLine();
-                    System.out.print("Enter price: ");
-                    double price = sc.nextDouble();
-                    sc.nextLine();
-                    System.out.print("Enter stock quantity: ");
-                    int stock = sc.nextInt();
-                    sc.nextLine();
+                    boolean addMore = true;
 
-                    String sql = "INSERT INTO Product (product_name, price, stock) VALUES (?, ?, ?)";
-                    db.addRecord(sql, name, price, stock);
-                    System.out.println("\nProduct added successfully!");
+                    while (addMore) {
+                        
+                        System.out.println("\n=== ADD PRODUCT ===");
+
+                        System.out.print("Enter product name: ");
+                        String name = sc.nextLine();
+
+                        System.out.print("Enter price: ");
+                        double price = sc.nextDouble();
+                        sc.nextLine();
+
+                        System.out.print("Enter stock quantity: ");
+                        int stock = sc.nextInt();
+                        sc.nextLine();
+
+                        String sql = "INSERT INTO Product (product_name, price, stock) VALUES (?, ?, ?)";
+                        db.addRecord(sql, name, price, stock);
+
+                        System.out.println("\nProduct added successfully!");
+
+                        System.out.print("\nAdd another product? (Y/N): ");
+                        String again = sc.nextLine().trim().toUpperCase();
+
+                        if (!again.equals("Y")) {  
+                            addMore = false;
+                        }
+                    }
                     
                     break;
 
-                case 2:
+                case "2":
                     
                     System.out.println("\n=== PRODUCT LIST ===");
                     
@@ -122,7 +132,7 @@ public class Owner {
                         
                     break;
 
-                case 3:
+                case "3":
                     
                     System.out.print("Enter Product ID to delete: ");
                     int id = sc.nextInt();
@@ -134,7 +144,7 @@ public class Owner {
                     
                     break;
 
-                case 4:
+                case "4":
                     
                     loop = false;
                     
