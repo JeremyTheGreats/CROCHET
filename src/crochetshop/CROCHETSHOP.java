@@ -3,8 +3,9 @@ package crochetshop;
 
 import config.config;
 import static config.config.hashPassword;
-import static crochetshop.Manager.Manager;
-import static crochetshop.Owner.Owner;
+import static crochetshop.Manager.managerDashboard;
+import static crochetshop.Owner.ownerDashboard;
+import static crochetshop.Provider.providerDashboard;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -86,11 +87,22 @@ public class CROCHETSHOP {
     String role = log.get(0).get("role").toString();
 
     switch(role){
-        case "Owner": Owner(); break;
-        case "Manager": Manager(); break;
-        case "Provider":
-            System.out.println("\nProvider dashboard not available yet.");
+        case "Owner": 
+            
+            ownerDashboard(); 
+            
             break;
+        case "Manager": 
+            
+            managerDashboard(); 
+            
+            break;
+        case "Provider":
+            
+            providerDashboard();
+            
+            break;
+            
         default:
             System.out.println("\nUnknown role, contact the administrator.");
     }
@@ -99,59 +111,60 @@ public class CROCHETSHOP {
     
     private static void register(){
 
-    Scanner sc = new Scanner(System.in);
-    config db = new config();
-    String roletype = null;
+        Scanner sc = new Scanner(System.in);
+        config db = new config();
+        String roletype = null;
 
-    System.out.println("\n=== REGISTER NEW USER ===");
-    System.out.print("Enter full name: ");
-    String fullName = sc.nextLine();
+        System.out.println("\n=== REGISTER NEW USER ===");
+        System.out.print("Enter full name: ");
+        String fullName = sc.nextLine();
 
-    System.out.print("Enter Email: ");
-    String newemail = sc.nextLine();
+        System.out.print("Enter Email: ");
+        String newemail = sc.nextLine();
 
-   
-    while (true) {
-        String checkQry = "SELECT * FROM User WHERE Email = ?";
-        List<Map<String, Object>> existing = db.fetchRecords(checkQry, newemail);
 
-        if (existing.isEmpty()) break;
+        while (true) {
+            String checkQry = "SELECT * FROM User WHERE Email = ?";
+            List<Map<String, Object>> existing = db.fetchRecords(checkQry, newemail);
 
-        System.out.print("\nEmail already exists. Enter a different one: ");
-        newemail = sc.nextLine();
+            if (existing.isEmpty()) break;
+
+            System.out.print("\nEmail already exists. Enter a different one: ");
+            newemail = sc.nextLine();
+        }
+
+
+        int roleChoice;
+        do {
+            System.out.println("\nSelect user role:");
+            System.out.println(" [1] Owner");
+            System.out.println(" [2] Manager");
+            System.out.println(" [3] Provider");
+            System.out.print("Choose (1 - 3): ");
+
+            roleChoice = sc.nextInt();
+            sc.nextLine(); 
+
+        } while (roleChoice < 1 || roleChoice > 3);
+
+        switch (roleChoice) {
+            case 1: roletype = "Owner"; break;
+            case 2: roletype = "Manager"; break;
+            case 3: roletype = "Provider"; break;
+        }
+
+
+        System.out.print("Enter password: ");
+        String newPass = sc.nextLine();
+        String hashPass = config.hashPassword(newPass);
+
+
+        String sql = "INSERT INTO User (Email, password, full_name, role) VALUES (?, ?, ?, ?)";
+        db.addRecord(sql, newemail, hashPass, fullName, roletype);
+
+        System.out.println("\nRegistration successful! You can now log in.");
     }
 
    
-    int roleChoice;
-    do {
-        System.out.println("\nSelect user role:");
-        System.out.println(" [1] Owner");
-        System.out.println(" [2] Manager");
-        System.out.println(" [3] Provider");
-        System.out.print("Choose (1 - 3): ");
-        
-        roleChoice = sc.nextInt();
-        sc.nextLine(); 
-
-    } while (roleChoice < 1 || roleChoice > 3);
-
-    switch (roleChoice) {
-        case 1: roletype = "Owner"; break;
-        case 2: roletype = "Manager"; break;
-        case 3: roletype = "Provider"; break;
-    }
-
-   
-    System.out.print("Enter password: ");
-    String newPass = sc.nextLine();
-    String hashPass = config.hashPassword(newPass);
-
-    
-    String sql = "INSERT INTO User (Email, password, full_name, role) VALUES (?, ?, ?, ?)";
-    db.addRecord(sql, newemail, hashPass, fullName, roletype);
-
-    System.out.println("\nRegistration successful! You can now log in.");
-}
-
     
 }

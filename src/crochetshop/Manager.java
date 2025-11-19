@@ -1,4 +1,3 @@
-
 package crochetshop;
 
 import config.config;
@@ -6,162 +5,201 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-
 public class Manager {
-    
-    public static void Manager(){
-        
+
+    public static void managerDashboard() {
         Scanner sc = new Scanner(System.in);
+        config db = new config();
         boolean loop = true;
-        
-        while (loop) {
+
+        while(loop) {
             System.out.println("\n==============================================");
-            System.out.println("         MANAGER DASHBOARD - CROCHET SHOP");
+            System.out.println("       MANAGER DASHBOARD - CROCHET SHOP");
             System.out.println("==============================================");
-            System.out.println(" [1] Manage Products");
-            System.out.println(" [2] View Orders");
+            System.out.println(" [1] Add Provider User");
+            System.out.println(" [2] Sell or Pull Out Product");
             System.out.println(" [3] Logout");
             System.out.println("==============================================");
             System.out.print(" Choose (1 - 3): ");
 
-            int choose = sc.nextInt();
-            sc.nextLine();
+            int choice = sc.nextInt();
+            sc.nextLine(); // consume newline
 
-            switch (choose) {
-                case 1:
-                    manageProducts();
+            switch(choice) {
+                case 1: 
+                    addProviderUser(sc, db); 
                     break;
-
-                case 2:
-                    viewOrders();
+                case 2: 
+                    manageProducts(sc, db); 
                     break;
-
-                case 3:
+                case 3: 
                     System.out.println("\nLogging out...");
                     loop = false;
                     break;
-
-                default:
+                default: 
                     System.out.println("\nInvalid choice. Try again.");
             }
         }
-        
     }
-    
-    private static void manageProducts() {
-        Scanner sc = new Scanner(System.in);
-        config db = new config();
-        boolean loop = true;
-        
-        while (loop) {
-            System.out.println("\n=== PRODUCT MANAGEMENT ===");
-            System.out.println(" [1] Add Product");
-            System.out.println(" [2] View Products");
-            System.out.println(" [3] Update Stock");
-            System.out.println(" [4] Back");
-            System.out.print(" Choose (1 - 4): ");
-            String choose = sc.nextLine();
-            
 
-            switch (choose) {
-                
-                case "1":
-                    boolean addMore = true;
+    private static void addProviderUser(Scanner sc, config db) {
+        System.out.println("\n=== ADD PROVIDER USER ===");
+        System.out.print("Enter Provider Fullname: ");
+        String name = sc.nextLine();
+        System.out.print("Enter Provider Email: ");
+        String email = sc.nextLine();
+        System.out.print("Enter Password: ");
+        String password = sc.nextLine();
 
-                    while (addMore) {
-                        
-                        System.out.println("\n=== ADD PRODUCT ===");
+        String hashedPassword = config.hashPassword(password);
 
-                        System.out.print("Enter product name: ");
-                        String name = sc.nextLine();
+        db.addRecord("INSERT INTO User (email, password, role, full_name) VALUES (?, ?, ?, ?)",
+                     email, hashedPassword, "Provider",name);
 
-                        System.out.print("Enter price: ");
-                        double price = sc.nextDouble();
-                        sc.nextLine();
+        System.out.println("\nProvider user added successfully!");
+    }
 
-                        System.out.print("Enter stock quantity: ");
-                        int stock = sc.nextInt();
-                        sc.nextLine();
+    private static void manageProducts(Scanner sc, config db) {
+    boolean loop = true;
 
-                        String sql = "INSERT INTO Product (product_name, price, stock) VALUES (?, ?, ?)";
-                        db.addRecord(sql, name, price, stock);
+    while(loop) {
+        System.out.println("\n=== PRODUCT MANAGEMENT ===");
+        System.out.println(" [1] Sell Product");
+        System.out.println(" [2] Pull Out Product");
+        System.out.println(" [3] View Products");
+        System.out.println(" [4] Back");
+        System.out.print("Choose (1 - 4): ");
+        int choice = sc.nextInt();
+        sc.nextLine();
 
-                        System.out.println("\nProduct added successfully!");
-
-                        System.out.print("\nAdd another product? (Y/N): ");
-                        String again = sc.nextLine().trim().toUpperCase();
-
-                        if (!again.equals("Y")) {  
-                            addMore = false;
-                        }
-                    }
-
+        switch(choice) {
+            case 1: 
+                sellProduct(sc, db); 
                 break;
-
-
-                case "2":
-                    System.out.println("\n=== PRODUCT LIST ===");
-                    List<Map<String, Object>> products = db.fetchRecords("SELECT * FROM Product");
-                    if (products.isEmpty()) {
-                        System.out.println("No products found.");
-                    } else {
-                        System.out.println("---------------------------------------------------------------");
-                        System.out.println("| ID  | Product Name           | Price        | Stock        |");
-                        System.out.println("---------------------------------------------------------------");
-
-                        for (Map<String, Object> p : products) {
-                            System.out.printf(
-                                "| %-3s | %-23s | ₱%-11s | %-11s |\n",
-                                p.get("product_id"),
-                                p.get("product_name"),
-                                p.get("price"),
-                                p.get("stock")
-                            );
-                        }
-
-                        System.out.println("---------------------------------------------------------------");
-
-                    }
-                    break;
-
-                case "3":
-                    System.out.print("Enter Product ID to update stock: ");
-                    int id = sc.nextInt();
-                    sc.nextLine();
-                    System.out.print("Enter new stock quantity: ");
-                    int newStock = sc.nextInt();
-                    sc.nextLine();
-
-                    db.updateRecord("UPDATE Product SET stock = ? WHERE product_id = ?", newStock, id);
-                    System.out.println("\nStock updated successfully!");
-                    break;
-
-                case "4":
-                    loop = false;
-                    break;
-
-                default:
-                    System.out.println("Invalid option!");
-            }
+            case 2: 
+                pullOutProduct(sc, db); 
+                break;
+            case 3:
+                viewProducts(db);
+                break;
+            case 4: 
+                loop = false; 
+                break;
+            default: 
+                System.out.println("Invalid option!");
         }
     }
-    
-    private static void viewOrders() {
-        
-        config db = new config();
-        
-        System.out.println("\n=== ORDER LIST ===");
-        List<Map<String, Object>> orders = db.fetchRecords("SELECT * FROM OrderTable");
-        if (orders.isEmpty()) {
-            System.out.println("No orders yet.");
-        } else {
-            for (Map<String, Object> o : orders) {
-                System.out.println("Order ID: " + o.get("order_id") +
-                        " | Product ID: " + o.get("product_id") +
-                        " | Quantity: " + o.get("quantity") +
-                        " | Total: ₱" + o.get("total_price") +
-                        " | Date: " + o.get("order_date"));
-            }
+}
+    private static void viewProducts(config db) {
+        List<Map<String, Object>> products = db.fetchRecords("SELECT * FROM Product");
+
+        if (products.isEmpty()) {
+            System.out.println("No products available.");
+            return;
         }
+
+        System.out.println("\n=== PRODUCT LIST ===");
+        System.out.printf("%-10s %-20s %-10s %-10s\n", "ID", "Product Name", "Price", "Stock");
+        System.out.println("---------------------------------------------------------");
+
+        for (Map<String, Object> p : products) {
+            System.out.printf(
+                "%-10s %-20s ₱%-9.2f %-10s\n",
+                p.get("product_id"),
+                p.get("product_name"),
+                p.get("price"),
+                p.get("stock")
+            );
+        }
+    }
+
+
+    private static void sellProduct(Scanner sc, config db) {
+        List<Map<String, Object>> products = db.fetchRecords("SELECT * FROM Product");
+
+        if (products.isEmpty()) {
+            System.out.println("No products available to sell.");
+            return;
+        }
+
+        System.out.println("\n=== PRODUCT LIST ===");
+        System.out.printf("%-10s %-20s %-10s %-10s\n", "ID", "Product Name", "Price", "Stock");
+        System.out.println("---------------------------------------------------------");
+
+        for (Map<String, Object> p : products) {
+            System.out.printf(
+                "%-10s %-20s ₱%-9.2f %-10s\n",
+                p.get("product_id"),
+                p.get("product_name"),
+                p.get("price"),
+                p.get("stock")
+            );
+        }
+
+        System.out.print("\nEnter Product ID to sell: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        System.out.print("Enter quantity to sell: ");
+        int qty = sc.nextInt();
+        sc.nextLine();
+
+        Map<String, Object> product = products.stream()
+                         .filter(p -> ((int)p.get("product_id")) == id)
+                         .findFirst()
+                         .orElse(null);
+
+        if (product == null) {
+            System.out.println("Product ID not found!");
+            return;
+        }
+
+        int stock = (int) product.get("stock");
+        double price = (double) product.get("price");
+
+        if (qty > stock) {
+            System.out.println("Not enough stock available!");
+            return;
+        }
+
+        int newStock = stock - qty;
+
+        
+        db.updateRecord("UPDATE Product SET stock = ? WHERE product_id = ?", newStock, id);
+
+        
+        double totalPrice = price * qty;
+        db.addRecord(
+            "INSERT INTO OrderTable (product_id, quantity, total_price) VALUES (?, ?, ?)",
+            id, qty, totalPrice
+        );
+
+        System.out.println("Product sold successfully!");
+}
+
+
+    private static void pullOutProduct(Scanner sc, config db) {
+        List<Map<String, Object>> products = db.fetchRecords("SELECT * FROM Product");
+
+        if (products.isEmpty()) {
+            System.out.println("No products available to remove.");
+            return;
+        }
+
+        System.out.println("\n=== PRODUCT LIST ===");
+        System.out.println("ID | Product Name | Price | Stock");
+        for (Map<String, Object> p : products) {
+            System.out.println(p.get("product_id") + " | " +
+                               p.get("product_name") + " | ₱" +
+                               p.get("price") + " | " +
+                               p.get("stock"));
+        }
+
+        System.out.print("\nEnter Product ID to remove from inventory: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+
+        db.deleteRecord("DELETE FROM Product WHERE product_id = ?", id);
+        System.out.println("Product removed successfully!");
     }
 }
